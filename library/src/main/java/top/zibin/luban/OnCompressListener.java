@@ -12,7 +12,7 @@ public interface OnCompressListener {
     /**
      * Fired when a compression returns successfully, override to handle in your own code
      */
-    void onSuccess(File file);
+    void onSuccess(FileBean file);
 
     /**
      * Fired when a compression fails to complete, override to handle in your own code

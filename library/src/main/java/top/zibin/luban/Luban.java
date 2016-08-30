@@ -35,7 +35,7 @@ public class Luban {
     private final File mCacheDir;
 
     private OnCompressListener compressListener;
-    private File mFile;
+    private FileBean mFile;
     private int gear = THIRD_GEAR;
     private String filename;
 
@@ -90,9 +90,9 @@ public class Luban {
 
         if (gear == Luban.FIRST_GEAR)
             Observable.just(mFile)
-                    .map(new Func1<File, File>() {
+                    .map(new Func1<FileBean, FileBean>() {
                         @Override
-                        public File call(File file) {
+                        public FileBean call(FileBean file) {
                             return firstCompress(file);
                         }
                     })
@@ -104,24 +104,24 @@ public class Luban {
                             if (compressListener != null) compressListener.onError(throwable);
                         }
                     })
-                    .onErrorResumeNext(Observable.<File>empty())
-                    .filter(new Func1<File, Boolean>() {
+                    .onErrorResumeNext(Observable.<FileBean>empty())
+                    .filter(new Func1<FileBean, Boolean>() {
                         @Override
-                        public Boolean call(File file) {
+                        public Boolean call(FileBean file) {
                             return file != null;
                         }
                     })
-                    .subscribe(new Action1<File>() {
+                    .subscribe(new Action1<FileBean>() {
                         @Override
-                        public void call(File file) {
+                        public void call(FileBean file) {
                             if (compressListener != null) compressListener.onSuccess(file);
                         }
                     });
         else if (gear == Luban.THIRD_GEAR)
             Observable.just(mFile)
-                    .map(new Func1<File, File>() {
+                    .map(new Func1<FileBean, FileBean>() {
                         @Override
-                        public File call(File file) {
+                        public FileBean call(FileBean file) {
                             return thirdCompress(file);
                         }
                     })
@@ -133,16 +133,16 @@ public class Luban {
                             if (compressListener != null) compressListener.onError(throwable);
                         }
                     })
-                    .onErrorResumeNext(Observable.<File>empty())
-                    .filter(new Func1<File, Boolean>() {
+                    .onErrorResumeNext(Observable.<FileBean>empty())
+                    .filter(new Func1<FileBean, Boolean>() {
                         @Override
-                        public Boolean call(File file) {
+                        public Boolean call(FileBean file) {
                             return file != null;
                         }
                     })
-                    .subscribe(new Action1<File>() {
+                    .subscribe(new Action1<FileBean>() {
                         @Override
-                        public void call(File file) {
+                        public void call(FileBean file) {
                             if (compressListener != null) compressListener.onSuccess(file);
                         }
                     });
@@ -150,7 +150,7 @@ public class Luban {
         return this;
     }
 
-    public Luban load(File file) {
+    public Luban load(FileBean file) {
         mFile = file;
         return this;
     }
@@ -170,29 +170,29 @@ public class Luban {
         return this;
     }
 
-    public Observable<File> asObservable() {
+    public Observable<FileBean> asObservable() {
         if (gear == FIRST_GEAR)
-            return Observable.just(mFile).map(new Func1<File, File>() {
+            return Observable.just(mFile).map(new Func1<FileBean, FileBean>() {
                 @Override
-                public File call(File file) {
+                public FileBean call(FileBean file) {
                     return firstCompress(file);
                 }
             });
         else if (gear == THIRD_GEAR)
-            return Observable.just(mFile).map(new Func1<File, File>() {
+            return Observable.just(mFile).map(new Func1<FileBean, FileBean>() {
                 @Override
-                public File call(File file) {
+                public FileBean call(FileBean file) {
                     return thirdCompress(file);
                 }
             });
         else return Observable.empty();
     }
 
-    private File thirdCompress(@NonNull File file) {
+    private FileBean thirdCompress(@NonNull FileBean fileBean) {
         String thumb = mCacheDir.getAbsolutePath() + File.separator + (TextUtils.isEmpty(filename) ? System.currentTimeMillis() : filename);
 
         double size;
-        String filePath = file.getAbsolutePath();
+        String filePath = fileBean.file.getAbsolutePath();
 
         int angle = getImageSpinAngle(filePath);
         int width = getImageSize(filePath)[0];
@@ -207,7 +207,7 @@ public class Luban {
 
         if (scale <= 1 && scale > 0.5625) {
             if (height < 1664) {
-                if (file.length() / 1024 < 150) return file;
+                if (fileBean.file.length() / 1024 < 150) return fileBean;
 
                 size = (width * height) / Math.pow(1664, 2) * 150;
                 size = size < 60 ? 60 : size;
@@ -229,7 +229,7 @@ public class Luban {
                 size = size < 100 ? 100 : size;
             }
         } else if (scale <= 0.5625 && scale > 0.5) {
-            if (height < 1280 && file.length() / 1024 < 200) return file;
+            if (height < 1280 && fileBean.file.length() / 1024 < 200) return fileBean;
 
             int multiple = height / 1280 == 0 ? 1 : height / 1280;
             thumbW = width / multiple;
@@ -244,19 +244,21 @@ public class Luban {
             size = size < 100 ? 100 : size;
         }
 
-        return compress(filePath, thumb, thumbW, thumbH, angle, (long) size);
+        File compress = compress(filePath, thumb, thumbW, thumbH, angle, (long) size);
+        fileBean.file = compress;
+        return fileBean;
     }
 
-    private File firstCompress(@NonNull File file) {
+    private FileBean firstCompress(@NonNull FileBean fileBean) {
         int minSize = 60;
         int longSide = 720;
         int shortSide = 1280;
 
-        String filePath = file.getAbsolutePath();
-        String thumbFilePath = mCacheDir.getAbsolutePath() + File.separator + (TextUtils.isEmpty(filename) ? System.currentTimeMillis() : filename) ;
+        String filePath = fileBean.file.getAbsolutePath();
+        String thumbFilePath = mCacheDir.getAbsolutePath() + File.separator + (TextUtils.isEmpty(filename) ? System.currentTimeMillis() : filename);
 
         long size = 0;
-        long maxSize = file.length() / 5;
+        long maxSize = fileBean.file.length() / 5;
 
         int angle = getImageSpinAngle(filePath);
         int[] imgSize = getImageSize(filePath);
@@ -285,7 +287,9 @@ public class Luban {
             }
         }
 
-        return compress(filePath, thumbFilePath, width, height, angle, size);
+        File compress = compress(filePath, thumbFilePath, width, height, angle, size);
+        fileBean.file = compress;
+        return fileBean;
     }
 
     /**
