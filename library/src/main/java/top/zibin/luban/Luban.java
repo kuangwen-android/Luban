@@ -101,7 +101,8 @@ public class Luban {
                     .doOnError(new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-                            if (compressListener != null) compressListener.onError(throwable);
+                            if (compressListener != null)
+                                compressListener.onError(throwable, mFile);
                         }
                     })
                     .onErrorResumeNext(Observable.<FileBean>empty())
@@ -130,7 +131,8 @@ public class Luban {
                     .doOnError(new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-                            if (compressListener != null) compressListener.onError(throwable);
+                            if (compressListener != null)
+                                compressListener.onError(throwable, mFile);
                         }
                     })
                     .onErrorResumeNext(Observable.<FileBean>empty())
