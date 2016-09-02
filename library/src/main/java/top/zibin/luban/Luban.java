@@ -13,6 +13,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Random;
+import java.util.UUID;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -191,7 +193,8 @@ public class Luban {
     }
 
     private FileBean thirdCompress(@NonNull FileBean fileBean) {
-        String thumb = mCacheDir.getAbsolutePath() + File.separator + (TextUtils.isEmpty(filename) ? System.currentTimeMillis() : filename);
+        Random random = new Random(100000);//指定种子数字
+        String thumb = mCacheDir.getAbsolutePath() + File.separator + (TextUtils.isEmpty(filename) ? UUID.randomUUID() : filename);
 
         double size;
         String filePath = fileBean.file.getAbsolutePath();
@@ -257,7 +260,7 @@ public class Luban {
         int shortSide = 1280;
 
         String filePath = fileBean.file.getAbsolutePath();
-        String thumbFilePath = mCacheDir.getAbsolutePath() + File.separator + (TextUtils.isEmpty(filename) ? System.currentTimeMillis() : filename);
+        String thumbFilePath = mCacheDir.getAbsolutePath() + File.separator + (TextUtils.isEmpty(filename) ? UUID.randomUUID() : filename);
 
         long size = 0;
         long maxSize = fileBean.file.length() / 5;
