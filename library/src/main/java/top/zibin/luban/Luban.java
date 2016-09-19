@@ -401,8 +401,8 @@ public class Luban {
      */
     private File compress(String largeImagePath, String thumbFilePath, int width, int height, int angle, long size) {
         Bitmap thbBitmap = compress(largeImagePath, width, height);
-
-        thbBitmap = rotatingImage(angle, thbBitmap);
+        //旋转图片可能会导致oom,暂时去掉
+//        thbBitmap = rotatingImage(angle, thbBitmap);
 
         return saveImage(thumbFilePath, thbBitmap, size);
     }
